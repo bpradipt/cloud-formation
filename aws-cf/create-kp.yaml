@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  RegionName:
+    Description: The name of the region where the key pair will be created.
+    Type: String
+    AllowedValues:
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+      - ca-central-1
+      - eu-central-1
+      - eu-west-1
+      - eu-west-2
+      - eu-west-3
+      - ap-northeast-1
+      - ap-northeast-2
+      - ap-southeast-1
+      - ap-southeast-2
+      - ap-south-1
+      - sa-east-1
+    Default: us-east-1
+  KeyPairName:
+    Description: The name of the SSH key pair.
+    Type: String
+Resources:
+  MyKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: !Ref KeyPairName
+      Tags:
+        - Key: "Name"
+          Value: !Ref KeyPairName
+      Region: !Ref RegionName
+
+# Creating using AWS cli
+# aws ec2 create-key-pair --region $AWS_REGION --key-name $KP_NAME --query 'KeyMaterial' --output text > my-key-pair.pem
+#

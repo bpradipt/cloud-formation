@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to launch the EC2 instance in
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public subnet to launch the EC2 instance in
+  PrivateSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private subnet to launch the EC2 instance in
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group to assign to the EC2 instance
+  InstanceType:
+    Type: String
+    Default: t3.small
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+Resources:
+  MyLaunchTemplate:
+    Type: 'AWS::EC2::LaunchTemplate'
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        ImageId: !Ref ImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyPairName
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            #When using multiple NICs, then comment out the below line
+            AssociatePublicIpAddress: true
+            SubnetId: !Ref PublicSubnetId
+            DeleteOnTermination: true
+            SecondaryPrivateIpAddressCount: 1
+            DeleteOnTermination: true
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: 30
+              VolumeType: gp2
+              DeleteOnTermination: true
+Outputs:
+  LaunchTemplateId:
+    Value: !Ref MyLaunchTemplate
+    Description: 'The ID of the created Launch Template'
+
+# Alternate way using AWS CLI
+#
+# aws ec2 create-launch-template --launch-template-name my-launch-template \
+# --version-description v1 --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":10,"VolumeType":"gp2"}}]' \
+# --instance-type t2.micro --image-id ami-0c55b159cbfafe1f0 --key-name my-keypair \
+# --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=my-instance}]' \
+# --network-interfaces '[{"DeviceIndex":0,"SubnetId":"<public-subnet-id>","Groups":["<security-group-id>"],"AssociatePublicIpAddress":true},{"DeviceIndex":1,"SubnetId":"<private-subnet-id>"}]'
+#

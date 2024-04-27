@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  VPCPeering:
+    Type: "AWS::EC2::VPCPeeringConnection"
+    Properties:
+      VpcId: !Ref VPC1
+      PeerVpcId: !Ref VPC2
+      PeerRegion: us-east-2
+      
+  RouteTableAssociation1:
+    Type: "AWS::EC2::VPCPeeringConnectionRouteTableAssociation"
+    Properties:
+      VpcPeeringConnectionId: !Ref VPCPeering
+      RouteTableId: !Ref RouteTable1
+      
+  RouteTableAssociation2:
+    Type: "AWS::EC2::VPCPeeringConnectionRouteTableAssociation"
+    Properties:
+      VpcPeeringConnectionId: !Ref VPCPeering
+      RouteTableId: !Ref RouteTable2
+      
+  VPC1:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      
+  VPC2:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.1.0.0/16"
+      
+  RouteTable1:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC1
+
+  RouteTable2:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC2
+

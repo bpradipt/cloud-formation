@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Outputs:
+  VPCID:
+    Description: VPC ID
+    Value: !Ref MyVPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPCID"
+  PublicSubnetID:
+    Description: Public Subnet ID
+    Value: !Ref MyPublicSubnet
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicSubnetID"
+  PrivateSubnetID:
+    Description: Private Subnet ID
+    Value: !Ref MyPrivateSubnet
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnetID"
+  SecurityGroupID:
+    Description: Security Group ID
+    Value: !Ref MySecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SecurityGroupID"
+  InternetGatewayId:
+    Description: Internet GW ID
+    Value: !Ref MyInternetGateway
+    Export:
+      Name: !Sub "${AWS::StackName}-InternetGatewayId"
+
+Resources:
+  MyVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 20.0.0.0/16
+      Tags:
+      - Key: "Name"
+        Value: !Sub "vpc-${AWS::StackName}"
+        #StackName: !Ref 'AWS::StackName'
+    Metadata:
+      'AWS::CloudFormation::Macro': !Sub "vpc-${AWS::StackName}"
+  MyInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+      - Key: "Name"
+        Value: !Sub "igw-${AWS::StackName}"
+        #StackName: !Ref 'AWS::StackName'
+    Metadata:
+      'AWS::CloudFormation::Macro': !Sub "igw-${AWS::StackName}"
+  MyVPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+  MyPublicSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 20.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: "Name"
+        Value: !Sub "public-subnet-${AWS::StackName}"
+        #StackName: !Ref 'AWS::StackName'
+  MyPrivateSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 20.0.1.0/24
+      Tags:
+      - Key: "Name"
+        Value: !Sub "private-subnet-${AWS::StackName}"
+        #StackName: !Ref 'AWS::StackName'
+  MyRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyVPC
+  MyPublicRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+  MyPublicSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref MyPublicSubnet
+      RouteTableId: !Ref MyRouteTable
+  MySecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Default Security Group'
+      VpcId: !Ref MyVPC
+      Tags:
+      - Key: "Name"
+        Value: !Sub "sg-${AWS::StackName}"
+        #StackName: !Ref 'AWS::StackName'
+  MySecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref MySecurityGroup
+      IpProtocol: 'tcp'
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+  MySecurityGroupIngress2:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref MySecurityGroup
+      IpProtocol: 'udp'
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+  MySecurityGroupIngress3:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref MySecurityGroup
+      IpProtocol: 'tcp'
+      FromPort: 15150
+      ToPort: 15150
+      CidrIp: 0.0.0.0/0
+

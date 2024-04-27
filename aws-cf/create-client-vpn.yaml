@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  VPC:
+    Description: The VpcId 
+    Type: AWS::EC2::VPC::Id
+  SG:
+    Description: SG ID
+    Type: 'List<AWS::EC2::SecurityGroup::Id>'
+  SUBNET:
+    Description: Subnet ID
+    #Type: 'List<AWS::EC2::Subnet::Id>'
+    Type: String
+    MinLength: 1
+    MaxLength: 54
+  
+Resources:
+  MyClientVpnEndpoint:
+    Type: 'AWS::EC2::ClientVpnEndpoint'
+    Properties:
+      AuthenticationOptions:
+        - Type: "certificate-authentication"
+          MutualAuthentication:   
+             ClientRootCertificateChainArn: "arn:aws:acm:us-east-2:269733383066:certificate/e8b632fa-8ea0-4762-8274-30a3d29e30f0"
+      ClientCidrBlock: 2.0.0.0/16
+      ServerCertificateArn: "arn:aws:acm:us-east-2:269733383066:certificate/e8b632fa-8ea0-4762-8274-30a3d29e30f0"
+      ConnectionLogOptions:
+        Enabled: False
+      TransportProtocol: udp
+      VpnPort: 443
+      VpcId: !Ref VPC
+      SecurityGroupIds: !Ref SG
+      SplitTunnel: True
+      TagSpecifications:
+        - ResourceType: "client-vpn-endpoint"
+          Tags:
+            - Key: Name
+              Value: !Sub "client-vpn-${AWS::StackName}"
+  MyAuthorizationRule:
+    Type: 'AWS::EC2::ClientVpnAuthorizationRule'
+    Properties:
+      ClientVpnEndpointId: !Ref MyClientVpnEndpoint
+      TargetNetworkCidr: "20.0.0.0/16"
+      AuthorizeAllGroups: true
+  MyVpnNetworkAssociation:
+    Type: 'AWS::EC2::ClientVpnTargetNetworkAssociation'
+    Properties:
+      ClientVpnEndpointId: !Ref MyClientVpnEndpoint
+      SubnetId: !Ref SUBNET
