@@ -1,0 +1,1 @@
+Sample cloud formation templates
